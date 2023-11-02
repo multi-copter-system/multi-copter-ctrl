@@ -8,6 +8,7 @@ from multi_copter_msgs.srv import (
     Waypoint,
     WaypointRequest,
 )
+from multi_copter_cmd import MultiCopterCmd as Cmd
 
 
 class ControlClientSample:
@@ -71,7 +72,7 @@ def main():
 
     # call control_center service
     rospy.loginfo("call control_center service")
-    cmd = "start"
+    cmd = Cmd.start()
     ret = node.callControlCenter(cmd)
     rospy.loginfo("send: {}".format(cmd))
     rospy.loginfo("receive: {}".format(ret))
