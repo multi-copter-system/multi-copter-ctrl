@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class MultiCopterCmd(Enum):
-    # for `control_center` service
+    # For `control_center` service
     START = 'start'
     READY = 'ready'
     HALT = 'halt'
@@ -13,7 +13,7 @@ class MultiCopterCmd(Enum):
     BEGIN_RETURN = 'begin_return'
     FINISH_RETURN = 'finish_return'
 
-    # for `waypoint_manager` service
+    # For `waypoint_manager` service
     READ = 'read'
     WRITE = 'write'
 
