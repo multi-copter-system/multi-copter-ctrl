@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import queue
 import rospy
 
 from multi_copter_cmd import MultiCopterCmd as Cmd
@@ -39,8 +40,8 @@ class ControlServer:
             self.gnc_node_cmd, String, queue_size=10
         )
 
-        # Waypoint list (use like a stack)
-        self.wp_list = []
+        # Waypoint queue (FIFO)
+        self.wp_queue = queue.Queue()
 
         rospy.loginfo("Get ready\n")
 
@@ -91,27 +92,30 @@ class ControlServer:
             rospy.loginfo("Return response to client: \n{}\n".format(response_msg))
             return response_msg
 
-        # When received READ command, read a waypoint from list
+        # When received READ command, read a waypoint from queue
         if request_msg.cmd == Cmd.READ.value:
             try:
-                next_wp = self.wp_list.pop()
+                next_wp = self.wp_queue.get(block=False)
                 response_msg.result = True
                 response_msg.wp.x = next_wp.x
                 response_msg.wp.y = next_wp.y
                 response_msg.wp.z = next_wp.z
-                rospy.loginfo("Read a waypoint from list")
-            except IndexError:
-                rospy.loginfo("Waypoint list is empty")
-        # When received WRITE command, append a waypoint to list
+                rospy.loginfo("Read a waypoint from queue")
+            except queue.Empty:
+                rospy.loginfo("Waypoint queue is empty")
+        # When received WRITE command, append a waypoint to queue
         elif request_msg.cmd == Cmd.WRITE.value:
-            self.wp_list.append(request_msg.wp)
-            response_msg.result = True
-            response_msg.wp.x = request_msg.wp.x
-            response_msg.wp.y = request_msg.wp.y
-            response_msg.wp.z = request_msg.wp.z
-            rospy.loginfo("Append a waypoint to list")
+            try:
+                self.wp_queue.put(request_msg.wp, block=False)
+                response_msg.result = True
+                response_msg.wp.x = request_msg.wp.x
+                response_msg.wp.y = request_msg.wp.y
+                response_msg.wp.z = request_msg.wp.z
+                rospy.loginfo("Append a waypoint to list")
+            except queue.Full:
+                rospy.loginfo("Waypoint queue is full")
         rospy.loginfo(
-            "The number of waypoint on the list: {}".format(len(self.wp_list))
+            "The number of waypoint on the queue: {}".format(self.wp_queue.qsize())
         )
 
         # Return response to client
