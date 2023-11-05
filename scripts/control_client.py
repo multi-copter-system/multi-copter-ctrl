@@ -20,20 +20,18 @@ class ControlClient:
         # Initialize node
         rospy.init_node(node_name)
 
-        # Namespace
-        self.multi_copter_ctrl = "/multi_copter_ctrl"
         # Service name
-        self.control_center = self.multi_copter_ctrl + "/control_center"
-        self.waypoint_manager = self.multi_copter_ctrl + "/waypoint_manager"
+        self.control_center = '/control_center'
+        self.waypoint_manager = '/waypoint_manager'
 
         # Create ros service client
         rospy.loginfo(
-            "Creating service client: {}, wait a minute...".format(self.control_center)
+            'Creating service client: {}, wait a minute...'.format(self.control_center)
         )
         rospy.wait_for_service(self.control_center)
         self.control_center_client = rospy.ServiceProxy(self.control_center, Command)
         rospy.loginfo(
-            "Creating service client: {}, wait a minute...".format(
+            'Creating service client: {}, wait a minute...'.format(
                 self.waypoint_manager
             )
         )
@@ -42,7 +40,7 @@ class ControlClient:
             self.waypoint_manager, Waypoint
         )
 
-        rospy.loginfo("Get ready")
+        rospy.loginfo('Get ready')
 
     def callControlCenter(self, cmd):
         """
@@ -71,44 +69,44 @@ class ControlClient:
 
 
 def main():
-    node = ControlClient("control_client")
+    node = ControlClient('control_client')
 
     while True:
-        print("Input command:", file=sys.stderr)
+        print('Input command:', file=sys.stderr)
         print(
-            "arming | halt | begin_move | begin_return | write | read | end (end means exit this program)",
+            'arming | halt | begin_move | begin_return | write | read | end (end means exit this program)',
             file=sys.stderr,
         )
         input_from_stdin = input()
 
-        if input_from_stdin == "end":
+        if input_from_stdin == 'end':
             break
         if not Cmd.is_member(input_from_stdin):
-            print("Invalid command\n", file=sys.stderr)
+            print('Invalid command\n', file=sys.stderr)
             continue
 
-        if input_from_stdin == "write":
-            print("Input waypoint:", file=sys.stderr)
-            print("x=", end="", file=sys.stderr)
+        if input_from_stdin == 'write':
+            print('Input waypoint:', file=sys.stderr)
+            print('x=', end='', file=sys.stderr)
             wp_x = input()
-            print("y=", end="", file=sys.stderr)
+            print('y=', end='', file=sys.stderr)
             wp_y = input()
-            print("z=", end="", file=sys.stderr)
+            print('z=', end='', file=sys.stderr)
             wp_z = input()
-            ret = node.callWaypointManager("write", (wp_x, wp_y, wp_z))
-        elif input_from_stdin == "read":
-            ret = node.callWaypointManager("read")
+            ret = node.callWaypointManager('write', (wp_x, wp_y, wp_z))
+        elif input_from_stdin == 'read':
+            ret = node.callWaypointManager('read')
         else:
             ret = node.callControlCenter(input_from_stdin)
 
-        print("{}\n".format(ret), file=sys.stderr)
+        print('{}\n'.format(ret), file=sys.stderr)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     try:
         main()
     except rospy.ROSInterruptException:
         pass
     finally:
-        print("\r", end="")
-        rospy.loginfo("Shutdown")
+        print('\r', end='')
+        rospy.loginfo('Shutdown')
