@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import rospy
+import sys
 
+from multi_copter_cmd import MultiCopterCmd as Cmd
 from multi_copter_msgs.srv import (
     Command,
     CommandRequest,
@@ -71,49 +73,35 @@ class ControlClient:
 def main():
     node = ControlClient("control_client")
 
-    # Send command to Control Center
-    cmd = "start"
-    rospy.loginfo("Send command to server: {}".format(cmd))
-    ret = node.callControlCenter(cmd)
-    if ret.result:
-        rospy.loginfo("The command was accepted\n")
-    else:
-        rospy.loginfo("The command was rejected\n")
+    while True:
+        print("Input command:", file=sys.stderr)
+        print(
+            "arming | halt | begin_move | begin_return | write | read | end (end means exit this program)",
+            file=sys.stderr,
+        )
+        input_from_stdin = input()
 
-    cmd = "hoge"
-    rospy.loginfo("Send command to server: {}".format(cmd))
-    ret = node.callControlCenter(cmd)
-    if ret.result:
-        rospy.loginfo("The command was accepted\n")
-    else:
-        rospy.loginfo("The command was rejected\n")
+        if input_from_stdin == "end":
+            break
+        if not Cmd.is_member(input_from_stdin):
+            print("Invalid command\n", file=sys.stderr)
+            continue
 
-    # Send command to Waypoint Manager
-    cmd = "write"
-    rospy.loginfo("Send command to server: {}".format(cmd))
-    ret = node.callWaypointManager(cmd, (1, 2, 3))
-    if ret.result:
-        rospy.loginfo("The command was accepted\n")
-    else:
-        rospy.loginfo("The command was rejected\n")
+        if input_from_stdin == "write":
+            print("Input waypoint:", file=sys.stderr)
+            print("x=", end="", file=sys.stderr)
+            wp_x = input()
+            print("y=", end="", file=sys.stderr)
+            wp_y = input()
+            print("z=", end="", file=sys.stderr)
+            wp_z = input()
+            ret = node.callWaypointManager("write", (wp_x, wp_y, wp_z))
+        elif input_from_stdin == "read":
+            ret = node.callWaypointManager("read")
+        else:
+            ret = node.callControlCenter(input_from_stdin)
 
-    cmd = "read"
-    rospy.loginfo("Send command to server: {}".format(cmd))
-    ret = node.callWaypointManager(cmd)
-    if ret.result:
-        rospy.loginfo("The command was accepted")
-        rospy.loginfo("Waypoint: x={}, y={}, z={}\n".format(ret.wp.x, ret.wp.y, ret.wp.z))
-    else:
-        rospy.loginfo("The command was rejected\n")
-
-    cmd = "read"
-    rospy.loginfo("Send command to server: {}".format(cmd))
-    ret = node.callWaypointManager(cmd)
-    if ret.result:
-        rospy.loginfo("The command was accepted")
-        rospy.loginfo("Waypoint: x={}, y={}, z={}\n".format(ret.wp.x, ret.wp.y, ret.wp.z))
-    else:
-        rospy.loginfo("The command was rejected\n")
+        print("{}\n".format(ret), file=sys.stderr)
 
 
 if __name__ == "__main__":

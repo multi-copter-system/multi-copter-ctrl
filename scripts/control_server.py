@@ -106,6 +106,9 @@ class ControlServer:
         elif request_msg.cmd == Cmd.WRITE.value:
             self.wp_list.append(request_msg.wp)
             response_msg.result = True
+            response_msg.wp.x = request_msg.wp.x
+            response_msg.wp.y = request_msg.wp.y
+            response_msg.wp.z = request_msg.wp.z
             rospy.loginfo("Append a waypoint to list")
         rospy.loginfo(
             "The number of waypoint on the list: {}".format(len(self.wp_list))
